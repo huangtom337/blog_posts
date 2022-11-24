@@ -8,29 +8,48 @@ const useFetch = (url) => {
         //runs when renders
         const abortController = new AbortController()
 
-        fetch(url, { signal: abortController.signal })
-            .then(res => {
-                if (!res.ok) {
-                    throw Error(`Error ${res.status}`)
-                } 
+        const fetchData = async() => {
+            const res = await fetch(url, { signal: abortController.signal })
+            if (!res.ok) {
+                throw Error(`Error ${res.status}`)
+            }
+            const json = await res.json()
+            setData(json)
+            setErr(null)
+            setIsLoading(false)
+        }
 
-                return res.json()
-            })
-            .then(data => {
-                // console.log(data)
-                setData(data)
-                setErr(null)
+        fetchData().catch(err => {
+            if (err.name === 'AbortError') {
+                console.log('fetch aborted')
+            } else {
                 setIsLoading(false)
-            })
-            .catch(err => {
-                if (err.name === 'AbortError') {
-                    console.log('fetch aborted')
-                } else {
-                    setIsLoading(false)
-                    setErr(err.message)
-                }
+                setErr(err.message)
+            }
+        })
+        // fetch(url, { signal: abortController.signal })
+        //     .then(res => {
+        //         if (!res.ok) {
+        //             throw Error(`Error ${res.status}`)
+        //         } 
 
-            })
+        //         return res.json()
+        //     })
+        //     .then(data => {
+        //         // console.log(data)
+        //         setData(data)
+        //         setErr(null)
+        //         setIsLoading(false)
+        //     })
+        //     .catch(err => {
+        //         if (err.name === 'AbortError') {
+        //             console.log('fetch aborted')
+        //         } else {
+        //             setIsLoading(false)
+        //             setErr(err.message)
+        //         }
+
+        //     })
         
         return () => abortController.abort()
     },[url]) //dependency, runs when whatever is in the array changes
